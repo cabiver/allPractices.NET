@@ -1,3 +1,5 @@
+
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
@@ -16,38 +18,32 @@ app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
-// Location 1: before routing runs, endpoint is always null here.
-app.Use(async (context, next) =>
-{
-    Console.WriteLine($"1. Endpoint: {context.GetEndpoint()?.DisplayName ?? "(null)"}");
-    await next(context);
-});
+app.UseHttpMethodOverride();
 
 app.UseRouting();
 
-// Location 2: after routing runs, endpoint will be non-null if routing found a match.
 app.Use(async (context, next) =>
 {
-    Console.WriteLine($"2. Endpoint: {context.GetEndpoint()?.DisplayName ?? "(null)"}");
+    Console.WriteLine(context);
+    Console.WriteLine(context.GetEndpoint());
+    Console.WriteLine(context.GetEndpoint()?.Metadata.GetMetadata<RequiresAuditAttribute>());
+
+    if (context.GetEndpoint()?.Metadata.GetMetadata<RequiresAuditAttribute>() is not null)
+    {
+        Console.WriteLine($"ACCESS TO SENSITIVE DATA AT: {DateTime.UtcNow}");
+    }
+
     await next(context);
 });
 
-// Location 3: runs when this endpoint matches
-app.MapGet("/", (HttpContext context) =>
-{
-    Console.WriteLine($"3. Endpoint: {context.GetEndpoint()?.DisplayName ?? "(null)"}");
-    return "Hello World!";
-}).WithDisplayName("Hello");
-
-app.UseEndpoints(_ => { });
-
-// Location 4: runs after UseEndpoints - will only run if there was no match.
-app.Use(async (context, next) =>
-{
-    Console.WriteLine($"4. Endpoint: {context.GetEndpoint()?.DisplayName ?? "(null)"}");
-    await next(context);
-});
+app.MapGet("/", () => "Audit isn't required.");
+app.MapGet("/sensitive", () => "Audit required for sensitive data.")
+    .WithMetadata(new RequiresAuditAttribute());
 
 //app.MapControllers();
 
 app.Run();
+
+
+
+public class RequiresAuditAttribute : Attribute { }
