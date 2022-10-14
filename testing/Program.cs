@@ -24,6 +24,7 @@ app.UseRouting();
 
 app.Use(async (context, next) =>
 {
+    // TODO: entender mas a profundidad la authorizacion del backend
     Console.WriteLine(context);
     Console.WriteLine(context.GetEndpoint());
     Console.WriteLine(context.GetEndpoint()?.Metadata.GetMetadata<RequiresAuditAttribute>());
@@ -40,7 +41,7 @@ app.MapGet("/", () => "Audit isn't required.");
 app.MapGet("/sensitive", () => "Audit required for sensitive data.")
     .WithMetadata(new RequiresAuditAttribute());
 
-//app.MapControllers();
+app.MapControllers();
 
 app.Run();
 
