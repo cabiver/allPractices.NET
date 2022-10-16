@@ -1,3 +1,5 @@
+using testing;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
@@ -16,38 +18,16 @@ app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
-// Location 1: before routing runs, endpoint is always null here.
-app.Use(async (context, next) =>
-{
-    Console.WriteLine($"1. Endpoint: {context.GetEndpoint()?.DisplayName ?? "(null)"}");
-    await next(context);
-});
+app.MapControllers();
 
-app.UseRouting();
+DocStrings DocStrings = new DocStrings();
 
-// Location 2: after routing runs, endpoint will be non-null if routing found a match.
-app.Use(async (context, next) =>
-{
-    Console.WriteLine($"2. Endpoint: {context.GetEndpoint()?.DisplayName ?? "(null)"}");
-    await next(context);
-});
+int numeroAMultiplicar = 2;
 
-// Location 3: runs when this endpoint matches
-app.MapGet("/", (HttpContext context) =>
-{
-    Console.WriteLine($"3. Endpoint: {context.GetEndpoint()?.DisplayName ?? "(null)"}");
-    return "Hello World!";
-}).WithDisplayName("Hello");
 
-app.UseEndpoints(_ => { });
-
-// Location 4: runs after UseEndpoints - will only run if there was no match.
-app.Use(async (context, next) =>
-{
-    Console.WriteLine($"4. Endpoint: {context.GetEndpoint()?.DisplayName ?? "(null)"}");
-    await next(context);
-});
-
-//app.MapControllers();
+// coloca el mouse encima de la funcion "mult"
+Console.WriteLine(DocStrings.mult(numeroAMultiplicar));
 
 app.Run();
+
+
